@@ -1,0 +1,9 @@
+{
+  "name": "Max",
+  "preferences": {
+    "likes": ["fitness", "modern architecture", "budget travel"],
+    "dislikes": ["peanuts"],
+    "typical_trip_style": "short efficient plans",
+    "transport_preference": "bus"
+  }
+}

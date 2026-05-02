@@ -1,0 +1,52 @@
+services:
+  chroma:
+    image: chromadb/chroma:0.5.5
+    container_name: a3-chroma
+    ports:
+      - "8001:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: a3-ollama
+    ports:
+      - "11435:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+
+  api:
+    build: .
+    container_name: a3-api
+    command: uvicorn src.server:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    environment:
+      - OLLAMA_ENDPOINT=http://ollama:11434/api/generate
+      - OLLAMA_GENERATE_TIMEOUT_S=300
+      - OLLAMA_MODEL=llama3.1:8b
+      - CHROMA_HOST=chroma
+      - CHROMA_PORT=8000
+    depends_on:
+      - chroma
+      - ollama
+    restart: unless-stopped
+
+  streamlit:
+    build: .
+    container_name: a3-streamlit
+    command: python3 -m streamlit run src/streamlit_app.py --server.address=0.0.0.0 --server.port=8501
+    ports:
+      - "8501:8501"
+    environment:
+      - API_BASE_URL=http://api:8000
+      - API_CHAT_TIMEOUT_S=600
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  ollama_data:
+  chroma_data:

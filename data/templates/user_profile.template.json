@@ -1,0 +1,17 @@
+{
+  "name": "YourName",
+  "academic_profile": {
+    "program": "Master of Information Systems",
+    "target_courses": ["INFS7205", "INFS7901"],
+    "exam_goal": "Distinction",
+    "weak_topics": ["evaluation design", "multimodal retrieval"],
+    "strong_topics": ["python implementation", "system integration"],
+    "study_style": "concise summaries with worked examples",
+    "time_budget_per_day": "2 hours"
+  },
+  "preferences": {
+    "response_style": "structured and concise",
+    "preferred_explanation_language": "English",
+    "revision_priority": ["assignment tasks", "exam-focused concepts"]
+  }
+}
