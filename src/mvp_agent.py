@@ -123,6 +123,34 @@ class MVPAgent:
             return
         self.current_filters = {}
 
+    def _build_plain_llm_answer(self, query: str) -> str:
+        """V0: no retrieval, no user profile — parametric knowledge only."""
+        prompt = (
+            "You are an academic assistant. Answer from general knowledge only. "
+            "No course documents were retrieved; do not fabricate specific filenames, "
+            "week labels, or claims that you looked up materials.\n"
+            f"Query: {query}\n"
+            "Respond concisely under 120 words.\n"
+            "Output format:\n"
+            "### Direct Answer\n"
+            "### Key Points\n"
+            "### Evidence Used\n"
+            "### Recommended Next Step\n"
+        )
+        llm_answer = self.llm.generate(prompt)
+        if llm_answer:
+            return llm_answer
+        return (
+            "### Direct Answer\n"
+            "The language model endpoint is unavailable or returned an empty response.\n\n"
+            "### Key Points\n"
+            "- Plain-LLM mode uses no retrieval.\n\n"
+            "### Evidence Used\n"
+            "- None.\n\n"
+            "### Recommended Next Step\n"
+            "- Start Ollama or use a RAG variant for template fallback on evidence.\n"
+        )
+
     def _build_answer(self, query: str, evidence_docs: List[Dict], use_memory: bool) -> str:
         evidence_items = []
         for d in evidence_docs[:3]:
@@ -188,7 +216,7 @@ class MVPAgent:
         self._prepare_filters(query)
 
         if variant == "v0":
-            answer = f"### Direct Answer\n{query}\n\n### Key Points\n- Baseline without retrieval.\n\n### Evidence Used\n- None.\n\n### Recommended Next Step\n- Try v2/v4 for grounded retrieval."
+            answer = self._build_plain_llm_answer(query)
             return {
                 "variant": variant,
                 "route": "none",
@@ -196,12 +224,12 @@ class MVPAgent:
                 "retrieved_ids": [],
                 "latency_ms": (time.perf_counter() - start) * 1000,
                 "tool_calls": 0,
-                "llm_used": False,
+                "llm_used": self.llm.last_call_used_llm,
                 "llm_available": self.llm_available,
                 "alignment_ready": False,
                 "clip_ready": True,
                 "expanded_query": query,
-                "retriever_backend": "none",
+                "retriever_backend": "plain_llm",
                 "retrieval_note": self.retrieval_note,
                 "active_filters": self.current_filters,
                 "index_stats": self.index_stats,

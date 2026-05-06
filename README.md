@@ -185,3 +185,7 @@ docker compose logs -f ollama
 ```bash
 docker compose down
 ```
+
+### how to index
+pip install -r requirements.txt
+python3 src/pipeline/offline_index.py --rebuild

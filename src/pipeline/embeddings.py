@@ -1,6 +1,6 @@
 import hashlib
 from pathlib import Path
-from typing import List
+from typing import Any, List
 
 
 def _hash_vector(text: str, dim: int = 384) -> List[float]:
@@ -63,3 +63,15 @@ class EmbeddingModels:
             return emb.tolist()
         except Exception:
             return self.embed_clip_text(text_proxy)
+
+    def embed_clip_pil(self, img: Any, text_proxy: str = "") -> List[float]:
+        """Encode a PIL Image (e.g. rendered PDF page) with CLIP; fallback to text_proxy or hash."""
+        self._load_clip_model()
+        if self.clip_model is None:
+            return _hash_vector(f"clip:pil:{text_proxy}", dim=512)
+        try:
+            return self.clip_model.encode([img], normalize_embeddings=True)[0].tolist()
+        except Exception:
+            if text_proxy:
+                return self.embed_clip_text(text_proxy)
+            return _hash_vector("clip:pil:fail", dim=512)
