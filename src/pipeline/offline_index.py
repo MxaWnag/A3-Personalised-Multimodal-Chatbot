@@ -4,7 +4,7 @@ import json
 import os
 import re
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import chromadb
 
@@ -298,11 +298,19 @@ def _index_from_raw_pdfs(
 def build_offline_index(
     data_dir: Path,
     persist_dir: Path,
-    llava_endpoint: str = "http://localhost:11434/api/generate",
-    llava_model: str = "llava:7b",
+    llava_endpoint: Optional[str] = None,
+    llava_model: Optional[str] = None,
     rebuild: bool = False,
     raw_subdir: str = "raw_data",
 ) -> Dict:
+    if llava_endpoint is None:
+        llava_endpoint = (
+            os.getenv("OLLAVA_ENDPOINT", "").strip()
+            or os.getenv("OLLAMA_ENDPOINT", "http://localhost:11434/api/generate").strip()
+        )
+    if llava_model is None:
+        llava_model = os.getenv("OLLAVA_MODEL", "llava:7b").strip()
+
     env_rebuild = os.getenv("A3_REBUILD_INDEX", "").strip().lower() in ("1", "true", "yes")
     rebuild = bool(rebuild or env_rebuild)
 

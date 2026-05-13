@@ -86,9 +86,9 @@ class MVPAgent:
         self.verifier = DeepSeekVerifier(self._llm_chat)
         self._graph_app = compile_langgraph(self)
 
-    def _llm_chat(self, system: str, user: str) -> str:
+    def _llm_chat(self, system: str, user: str, timeout_s: Optional[float] = None) -> str:
         prompt = f"{system.strip()}\n\n{user.strip()}"
-        return self.llm.generate(prompt)
+        return self.llm.generate(prompt, timeout_s=timeout_s)
 
     def _load_docs(self) -> List[Dict]:
         docs = []

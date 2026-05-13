@@ -31,7 +31,7 @@ class AgentState(TypedDict, total=False):
 def compile_langgraph(agent: Any) -> Any:
     """
     V4 (align_recovery=True): matches report diagram —
-    filters → plan (hybrid intent) → retrieve (hybrid) → answer → verify,
+    filters → plan → retrieve → answer → verify,
     then either finalize, or rewrite→verify loop (citation), or retrieve_recovery→answer→verify (retrieval),
     with per-path retry caps (exhausted → finalize).
     v1–v3 or align_recovery=False: verify fail → finalize (no loops).
@@ -66,7 +66,13 @@ def compile_langgraph(agent: Any) -> Any:
             course_context=agent._course_context() + plan_notes_hint,
         )
         trace = list(state.get("tool_trace", []))
-        trace.append({"node": "plan", "route": "hybrid" if variant == "v4" else "router", "retrieve_queries": plan_out.get("retrieve_queries", [])})
+        trace.append(
+            {
+                "node": "plan",
+                "route": "hybrid" if variant == "v4" else "router",
+                "retrieve_queries": plan_out.get("retrieve_queries", []),
+            }
+        )
         return {"plan_json": plan_out, "tool_trace": trace}
 
     def retrieve(state: AgentState) -> AgentState:

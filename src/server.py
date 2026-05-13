@@ -1,11 +1,13 @@
 import json
+import logging
 import time
 import threading
 import uuid
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import List, Optional
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field, field_validator
 
 from .mvp_agent import MVPAgent
@@ -45,9 +47,23 @@ class ResetRequest(BaseModel):
 
 
 ROOT = Path(__file__).resolve().parents[1]
-app = FastAPI(title="A3 Personalised Multimodal Chatbot API", version="0.1.0")
 _AGENT: Optional[MVPAgent] = None
 _AGENT_LOCK = threading.Lock()
+_LOG = logging.getLogger("a3.server")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Load index + agent before accepting traffic (first run can take several minutes)."""
+    get_agent()
+    yield
+
+
+app = FastAPI(
+    title="A3 Personalised Multimodal Chatbot API",
+    version="0.1.0",
+    lifespan=lifespan,
+)
 
 
 def get_agent() -> MVPAgent:
@@ -88,7 +104,11 @@ def chat(req: ChatRequest):
     session_id = req.session_id or str(uuid.uuid4())
     variant = req.variant
     align = bool(req.align_recovery) and variant == "v4"
-    out = agent.ask(req.message, variant=variant, session_id=session_id, align_recovery=align)
+    try:
+        out = agent.ask(req.message, variant=variant, session_id=session_id, align_recovery=align)
+    except Exception:
+        _LOG.exception("chat_failed session_id=%s variant=%s", session_id, variant)
+        raise HTTPException(status_code=500, detail="chat_failed") from None
 
     retrieved_image_sources: List[str] = []
     for item in out.get("retrieved_items", []) or []:

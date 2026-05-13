@@ -48,7 +48,7 @@ class DeepSeekPlanner:
             "You are a careful planner for a course assistant with multimodal retrieval (text + images). "
             "Return STRICT JSON only."
         )
-        user = f"""Task: propose retrieval queries and a short plan.
+        user = f"""Task: propose retrieval queries and a short plan. Every user turn runs vector retrieval; queries should cover the information need.
 
 Course context (may be empty):
 {course_context}
@@ -74,10 +74,13 @@ Return JSON with keys:
         queries = data.get("retrieve_queries") or []
         if not isinstance(queries, list):
             queries = []
-        queries = [str(q).strip() for q in queries if str(q).strip()][:4]
+        queries = [str(x).strip() for x in queries if str(x).strip()][:4]
         if not queries:
             queries = [user_message.strip()[:200] or "course materials"]
-        return {"retrieve_queries": queries, "plan_notes": str(data.get("plan_notes", "")).strip()}
+        return {
+            "retrieve_queries": queries,
+            "plan_notes": str(data.get("plan_notes", "")).strip(),
+        }
 
 
 class DeepSeekComposer:
@@ -93,9 +96,10 @@ class DeepSeekComposer:
         sources: str,
     ) -> str:
         system = (
-            "You are a course teaching assistant. Use ONLY the provided evidence cards. "
-            "If evidence is insufficient, say what is missing. Output Markdown with headings: "
-            "### Direct Answer, ### Evidence, ### Follow-ups."
+            "You are a course teaching assistant. Use ONLY the provided evidence cards for factual course claims. "
+            "If evidence is insufficient for a course question, say what is missing. "
+            "For greetings or non-course small talk, reply briefly without inventing lecture facts not in the cards. "
+            "Output Markdown with headings: ### Direct Answer, ### Evidence, ### Follow-ups."
         )
         user = f"""Conversation so far:
 {conversation_summary}
