@@ -1,19 +1,27 @@
+import json
 import time
 import threading
 import uuid
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 from fastapi import FastAPI
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from .mvp_agent import MVPAgent
+from .session_store import SESSION_STORE
 
 
 class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1)
     variant: str = Field(default="v2", pattern="^(v0|v1|v2|v3|v4)$")
     session_id: Optional[str] = None
+    align_recovery: bool = False
+
+    @field_validator("variant", mode="before")
+    @classmethod
+    def _lower_variant(cls, v: object) -> str:
+        return str(v or "v2").strip().lower()
 
 
 class ChatResponse(BaseModel):
@@ -28,6 +36,8 @@ class ChatResponse(BaseModel):
     history_len: int
     retrieved_image_sources: List[str]
     reasoning_trace: List[str]
+    stop_reason: Optional[str] = None
+    verify_pass: Optional[bool] = None
 
 
 class ResetRequest(BaseModel):
@@ -39,9 +49,6 @@ app = FastAPI(title="A3 Personalised Multimodal Chatbot API", version="0.1.0")
 _AGENT: Optional[MVPAgent] = None
 _AGENT_LOCK = threading.Lock()
 
-# Minimal in-memory conversation store for follow-up context.
-SESSION_STORE: Dict[str, List[Dict[str, str]]] = {}
-
 
 def get_agent() -> MVPAgent:
     global _AGENT
@@ -51,15 +58,6 @@ def get_agent() -> MVPAgent:
         if _AGENT is None:
             _AGENT = MVPAgent(ROOT / "data")
     return _AGENT
-
-
-def _build_contextual_message(message: str, session_id: str) -> str:
-    history = SESSION_STORE.get(session_id, [])
-    if not history:
-        return message
-    recent_turns = history[-4:]
-    serialized = " ".join([f"User: {t['user']} Assistant: {t['assistant']}" for t in recent_turns])
-    return f"Conversation context: {serialized}\nCurrent query: {message}"
 
 
 @app.get("/health")
@@ -88,47 +86,43 @@ def health():
 def chat(req: ChatRequest):
     agent = get_agent()
     session_id = req.session_id or str(uuid.uuid4())
-    contextual_message = _build_contextual_message(req.message, session_id)
-    out = agent.ask(contextual_message, variant=req.variant)
-    retrieved_image_sources = []
-    for item in out.get("retrieved_items", []):
-        md = item.get("metadata", {})
+    variant = req.variant
+    align = bool(req.align_recovery) and variant == "v4"
+    out = agent.ask(req.message, variant=variant, session_id=session_id, align_recovery=align)
+
+    retrieved_image_sources: List[str] = []
+    for item in out.get("retrieved_items", []) or []:
+        md = item.get("metadata") or {}
         if md.get("modality") == "image":
             src = md.get("source_image") or md.get("source")
             if src:
-                retrieved_image_sources.append(src)
+                retrieved_image_sources.append(str(src))
 
-    reasoning_trace = [
-        f"variant={req.variant}",
-        f"route={out.get('route', 'none')}",
-        f"retriever_backend={out.get('retriever_backend', 'none')}",
-        f"active_filters={out.get('active_filters', {})}",
-        f"retrieval_note={out.get('retrieval_note', '')}",
-        f"expanded_query={out.get('expanded_query', req.message)}",
-        f"retrieved_topk={out.get('retrieved_ids', [])[:5]}",
-        f"llm_available={bool(out.get('llm_available', False))}",
-        f"llm_used={bool(out.get('llm_used', False))}",
-        f"alignment_ready={bool(out.get('alignment_ready', False))}",
-        f"clip_ready={bool(out.get('clip_ready', False))}",
-    ]
+    reasoning_trace: List[str] = []
+    for step in out.get("tool_trace") or []:
+        reasoning_trace.append(json.dumps(step, ensure_ascii=False))
+    reasoning_trace.append(f"stop_reason={out.get('stop_reason', '')}")
+    reasoning_trace.append(f"verify_pass={out.get('verify_pass')}")
 
-    SESSION_STORE.setdefault(session_id, []).append({"user": req.message, "assistant": out["answer"]})
+    hist = SESSION_STORE.get_history(session_id)
     return ChatResponse(
         session_id=session_id,
         answer=out["answer"],
-        route=out["route"],
-        retrieved_ids=out["retrieved_ids"],
-        latency_ms=out["latency_ms"],
-        tool_calls=out["tool_calls"],
+        route=str(out.get("route", "none")),
+        retrieved_ids=out.get("retrieved_ids", []) or [],
+        latency_ms=float(out["latency_ms"]),
+        tool_calls=int(out.get("tool_calls", 0)),
         llm_used=bool(out.get("llm_used", False)),
         llm_available=bool(out.get("llm_available", False)),
-        history_len=len(SESSION_STORE[session_id]),
+        history_len=len(hist),
         retrieved_image_sources=retrieved_image_sources,
         reasoning_trace=reasoning_trace,
+        stop_reason=out.get("stop_reason"),
+        verify_pass=out.get("verify_pass"),
     )
 
 
 @app.post("/reset")
 def reset(req: ResetRequest):
-    SESSION_STORE.pop(req.session_id, None)
+    SESSION_STORE.clear_session(req.session_id)
     return {"ok": True, "session_id": req.session_id}

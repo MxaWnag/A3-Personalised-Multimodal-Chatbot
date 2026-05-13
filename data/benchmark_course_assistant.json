@@ -1,0 +1,591 @@
+[
+  {
+    "id": "f01",
+    "family": "factual",
+    "query": "What is earned value (EV) in project control?",
+    "gold_sources": [
+      "ENGG4800_Lecture_8_Week_8_S1_2026.pdf"
+    ],
+    "keywords": [
+      "earned value",
+      "budgeted cost",
+      "work performed"
+    ]
+  },
+  {
+    "id": "f02",
+    "family": "factual",
+    "query": "What is the baseline plan used for in project monitoring?",
+    "gold_sources": [
+      "ENGG4800_Lecture_8_Week_8_S1_2026.pdf"
+    ],
+    "keywords": [
+      "baseline",
+      "measuring performance",
+      "compare"
+    ]
+  },
+  {
+    "id": "f03",
+    "family": "factual",
+    "query": "What are control charts used to monitor?",
+    "gold_sources": [
+      "ENGG4800_Lecture_8_Week_8_S1_2026.pdf"
+    ],
+    "keywords": [
+      "control chart",
+      "milestone",
+      "monitor"
+    ]
+  },
+  {
+    "id": "f04",
+    "family": "factual",
+    "query": "In Applied Class 7, what is a risk register?",
+    "gold_sources": [
+      "ENGG4800_Applied Class 7.pdf"
+    ],
+    "keywords": [
+      "risk register",
+      "risk",
+      "information"
+    ]
+  },
+  {
+    "id": "f05",
+    "family": "factual",
+    "query": "Define schedule variance in earned value management terms.",
+    "gold_sources": [
+      "ENGG4800_Lecture_8_Week_8_S1_2026.pdf"
+    ],
+    "keywords": [
+      "schedule",
+      "variance",
+      "earned value"
+    ]
+  },
+  {
+    "id": "f06",
+    "family": "factual",
+    "query": "What does CPI below 1.0 imply for a project?",
+    "gold_sources": [
+      "ENGG4800_Lecture_8_Week_8_S1_2026.pdf"
+    ],
+    "keywords": [
+      "CPI",
+      "cost performance",
+      "budget"
+    ]
+  },
+  {
+    "id": "f07",
+    "family": "factual",
+    "query": "How is SPI used alongside earned value metrics?",
+    "gold_sources": [
+      "ENGG4800_Lecture_8_Week_8_S1_2026.pdf"
+    ],
+    "keywords": [
+      "SPI",
+      "schedule",
+      "performance"
+    ]
+  },
+  {
+    "id": "f08",
+    "family": "factual",
+    "query": "What is the purpose of a milestone trend chart?",
+    "gold_sources": [
+      "ENGG4800_Lecture_8_Week_8_S1_2026.pdf"
+    ],
+    "keywords": [
+      "milestone",
+      "trend",
+      "chart"
+    ]
+  },
+  {
+    "id": "f09",
+    "family": "factual",
+    "query": "List common inputs to a project risk register.",
+    "gold_sources": [
+      "ENGG4800_Applied Class 7.pdf"
+    ],
+    "keywords": [
+      "risk",
+      "register",
+      "inputs"
+    ]
+  },
+  {
+    "id": "f10",
+    "family": "factual",
+    "query": "What is contingency reserve versus management reserve?",
+    "gold_sources": [
+      "ENGG4800_Lecture_8_Week_8_S1_2026.pdf"
+    ],
+    "keywords": [
+      "contingency",
+      "reserve",
+      "management"
+    ]
+  },
+  {
+    "id": "c01",
+    "family": "cross_modal",
+    "query": "Which image document is about a multimodal RAG pipeline diagram?",
+    "gold_docs": [
+      "i_infs7205_w08_001"
+    ],
+    "keywords": [
+      "pipeline",
+      "multimodal",
+      "rag"
+    ]
+  },
+  {
+    "id": "c02",
+    "family": "cross_modal",
+    "query": "Find the image related to high-dimensional indexing structure comparison.",
+    "gold_docs": [
+      "i_infs7205_w06_001"
+    ],
+    "keywords": [
+      "indexing",
+      "high-dimensional",
+      "vector"
+    ]
+  },
+  {
+    "id": "c03",
+    "family": "cross_modal",
+    "query": "Which figure shows route, memory, retrieve, and answer nodes?",
+    "gold_docs": [
+      "i_infs7205_w08_001"
+    ],
+    "keywords": [
+      "route",
+      "memory",
+      "retrieve",
+      "answer"
+    ]
+  },
+  {
+    "id": "c04",
+    "family": "cross_modal",
+    "query": "Locate the practical class visual workflow example from ENGG4800.",
+    "gold_docs": [
+      "i_engg4800_w08_001"
+    ],
+    "keywords": [
+      "practical",
+      "workflow",
+      "engg4800"
+    ]
+  },
+  {
+    "id": "c05",
+    "family": "cross_modal",
+    "query": "Which slide figure compares vector search trade-offs for nearest neighbors?",
+    "gold_docs": [
+      "i_infs7205_w06_001"
+    ],
+    "keywords": [
+      "vector",
+      "nearest",
+      "trade"
+    ]
+  },
+  {
+    "id": "c06",
+    "family": "cross_modal",
+    "query": "Find the multimodal inputs diagram used in INFS7205 week 8.",
+    "gold_docs": [
+      "i_infs7205_w08_001"
+    ],
+    "keywords": [
+      "multimodal",
+      "inputs",
+      "week"
+    ]
+  },
+  {
+    "id": "c07",
+    "family": "cross_modal",
+    "query": "Which image caption mentions pipeline-style multimodal RAG?",
+    "gold_docs": [
+      "i_infs7205_w08_001"
+    ],
+    "keywords": [
+      "pipeline",
+      "caption",
+      "rag"
+    ]
+  },
+  {
+    "id": "c08",
+    "family": "cross_modal",
+    "query": "Identify the ENGG4800 week 8 applied visual workflow figure.",
+    "gold_docs": [
+      "i_engg4800_w08_001"
+    ],
+    "keywords": [
+      "week8",
+      "visual",
+      "workflow"
+    ]
+  },
+  {
+    "id": "c09",
+    "family": "cross_modal",
+    "query": "Which figure is tied to high-dimensional indexing lecture materials?",
+    "gold_docs": [
+      "i_infs7205_w06_001"
+    ],
+    "keywords": [
+      "indexing",
+      "lecture",
+      "figure"
+    ]
+  },
+  {
+    "id": "c10",
+    "family": "cross_modal",
+    "query": "Which image id corresponds to the multimodal RAG roadmap style diagram?",
+    "gold_docs": [
+      "i_infs7205_w08_001"
+    ],
+    "keywords": [
+      "roadmap",
+      "diagram",
+      "multimodal"
+    ]
+  },
+  {
+    "id": "m01",
+    "family": "multi_hop",
+    "query": "Summarize how baseline planning and earned value work together for control.",
+    "gold_sources": [
+      "ENGG4800_Lecture_8_Week_8_S1_2026.pdf"
+    ],
+    "keywords": [
+      "baseline",
+      "earned value",
+      "control"
+    ]
+  },
+  {
+    "id": "m02",
+    "family": "multi_hop",
+    "query": "Compare tracking Gantt charts and control charts for monitoring progress.",
+    "gold_sources": [
+      "ENGG4800_Lecture_8_Week_8_S1_2026.pdf"
+    ],
+    "keywords": [
+      "gantt",
+      "control chart",
+      "monitoring"
+    ]
+  },
+  {
+    "id": "m03",
+    "family": "multi_hop",
+    "query": "Connect risk management concepts in Applied Class 7 with project control needs.",
+    "gold_sources": [
+      "ENGG4800_Applied Class 7.pdf",
+      "ENGG4800_Lecture_8_Week_8_S1_2026.pdf"
+    ],
+    "keywords": [
+      "risk",
+      "control",
+      "project"
+    ]
+  },
+  {
+    "id": "m04",
+    "family": "multi_hop",
+    "query": "What trade-offs are discussed around schedule tracking and budget performance?",
+    "gold_sources": [
+      "ENGG4800_Lecture_8_Week_8_S1_2026.pdf"
+    ],
+    "keywords": [
+      "schedule",
+      "budget",
+      "performance"
+    ]
+  },
+  {
+    "id": "m05",
+    "family": "multi_hop",
+    "query": "Link earned value indices to corrective actions discussed in the lecture.",
+    "gold_sources": [
+      "ENGG4800_Lecture_8_Week_8_S1_2026.pdf"
+    ],
+    "keywords": [
+      "earned value",
+      "corrective",
+      "indices"
+    ]
+  },
+  {
+    "id": "m06",
+    "family": "multi_hop",
+    "query": "Explain how risk responses relate to monitoring milestones on the critical path.",
+    "gold_sources": [
+      "ENGG4800_Applied Class 7.pdf",
+      "ENGG4800_Lecture_8_Week_8_S1_2026.pdf"
+    ],
+    "keywords": [
+      "risk",
+      "milestones",
+      "monitor"
+    ]
+  },
+  {
+    "id": "m07",
+    "family": "multi_hop",
+    "query": "Contrast SPI trends with milestone burn-down style reporting.",
+    "gold_sources": [
+      "ENGG4800_Lecture_8_Week_8_S1_2026.pdf"
+    ],
+    "keywords": [
+      "SPI",
+      "milestone",
+      "reporting"
+    ]
+  },
+  {
+    "id": "m08",
+    "family": "multi_hop",
+    "query": "How do control limits on charts relate to tolerance thresholds in schedules?",
+    "gold_sources": [
+      "ENGG4800_Lecture_8_Week_8_S1_2026.pdf"
+    ],
+    "keywords": [
+      "control limits",
+      "tolerance",
+      "schedule"
+    ]
+  },
+  {
+    "id": "m09",
+    "family": "multi_hop",
+    "query": "Summarize interactions between contingency planning and earned value forecasts.",
+    "gold_sources": [
+      "ENGG4800_Lecture_8_Week_8_S1_2026.pdf",
+      "ENGG4800_Applied Class 7.pdf"
+    ],
+    "keywords": [
+      "contingency",
+      "forecast",
+      "earned value"
+    ]
+  },
+  {
+    "id": "m10",
+    "family": "multi_hop",
+    "query": "Outline how documentation in a risk register supports audit during control.",
+    "gold_sources": [
+      "ENGG4800_Applied Class 7.pdf",
+      "ENGG4800_Lecture_8_Week_8_S1_2026.pdf"
+    ],
+    "keywords": [
+      "documentation",
+      "audit",
+      "risk"
+    ]
+  },
+  {
+    "id": "p01",
+    "family": "follow_up",
+    "prior_turn": [
+      {
+        "user": "What is multimodal RAG?",
+        "assistant": "Multimodal RAG combines text and images in retrieval-augmented generation using encoders and a retriever over mixed corpora."
+      }
+    ],
+    "query": "Give a concise revision tip focused on evaluation design for multimodal retrieval.",
+    "gold_sources": [
+      "INFS7205_Lecture8_Multimodal RAG.pdf",
+      "INFS7205_Lecture6_High Dimensional Indexing-v1.pdf"
+    ],
+    "keywords": [
+      "evaluation",
+      "retrieval",
+      "metric"
+    ]
+  },
+  {
+    "id": "p02",
+    "family": "follow_up",
+    "prior_turn": [
+      {
+        "user": "Summarize earned value basics.",
+        "assistant": "EV compares planned value, earned value, and actual cost to measure performance."
+      }
+    ],
+    "query": "I have only 2 hours; what should I revise first for the exam?",
+    "gold_sources": [
+      "ENGG4800_Lecture_8_Week_8_S1_2026.pdf"
+    ],
+    "keywords": [
+      "concise",
+      "prioritize",
+      "revision"
+    ]
+  },
+  {
+    "id": "p03",
+    "family": "follow_up",
+    "prior_turn": [
+      {
+        "user": "What topics pair indexing with multimodal RAG?",
+        "assistant": "Indexing supports vector search; multimodal RAG fuses modalities at retrieval and generation."
+      }
+    ],
+    "query": "Recommend a study sequence combining indexing and multimodal RAG topics.",
+    "gold_sources": [
+      "INFS7205_Lecture6_High Dimensional Indexing-v1.pdf",
+      "INFS7205_Lecture8_Multimodal RAG.pdf"
+    ],
+    "keywords": [
+      "indexing",
+      "multimodal",
+      "sequence"
+    ]
+  },
+  {
+    "id": "p04",
+    "family": "follow_up",
+    "prior_turn": [
+      {
+        "user": "Explain multimodal RAG in one paragraph.",
+        "assistant": "It retrieves grounded evidence across modalities then composes an answer with citations."
+      }
+    ],
+    "query": "Rewrite the explanation into short bullet points matching a concise style.",
+    "gold_sources": [
+      "INFS7205_Lecture8_Multimodal RAG.pdf"
+    ],
+    "keywords": [
+      "bullet",
+      "concise",
+      "style"
+    ]
+  },
+  {
+    "id": "p05",
+    "family": "follow_up",
+    "prior_turn": [
+      {
+        "user": "Define CPI.",
+        "assistant": "CPI is EV divided by AC; values below 1 mean cost overrun."
+      }
+    ],
+    "query": "What follow-up calculation should I practice with SPI?",
+    "gold_sources": [
+      "ENGG4800_Lecture_8_Week_8_S1_2026.pdf"
+    ],
+    "keywords": [
+      "SPI",
+      "practice",
+      "calculation"
+    ]
+  },
+  {
+    "id": "p06",
+    "family": "follow_up",
+    "prior_turn": [
+      {
+        "user": "What is a risk register?",
+        "assistant": "A structured list capturing risks, owners, scores, and responses."
+      }
+    ],
+    "query": "How should I link the register to weekly control meetings?",
+    "gold_sources": [
+      "ENGG4800_Applied Class 7.pdf",
+      "ENGG4800_Lecture_8_Week_8_S1_2026.pdf"
+    ],
+    "keywords": [
+      "weekly",
+      "control",
+      "meetings"
+    ]
+  },
+  {
+    "id": "p07",
+    "family": "follow_up",
+    "prior_turn": [
+      {
+        "user": "Describe control charts briefly.",
+        "assistant": "They plot measurements over time with control limits to detect instability."
+      }
+    ],
+    "query": "Give an example where I would prefer a Gantt view instead.",
+    "gold_sources": [
+      "ENGG4800_Lecture_8_Week_8_S1_2026.pdf"
+    ],
+    "keywords": [
+      "gantt",
+      "example",
+      "prefer"
+    ]
+  },
+  {
+    "id": "p08",
+    "family": "follow_up",
+    "prior_turn": [
+      {
+        "user": "Outline baseline vs actual tracking.",
+        "assistant": "Baseline is the reference plan; actuals are recorded and compared for variance."
+      }
+    ],
+    "query": "What is one exam-style question combining baseline with earned value?",
+    "gold_sources": [
+      "ENGG4800_Lecture_8_Week_8_S1_2026.pdf"
+    ],
+    "keywords": [
+      "exam",
+      "baseline",
+      "earned value"
+    ]
+  },
+  {
+    "id": "p09",
+    "family": "follow_up",
+    "prior_turn": [
+      {
+        "user": "What is high-dimensional indexing?",
+        "assistant": "Techniques like trees and quantization to search vectors efficiently."
+      }
+    ],
+    "query": "Connect that idea to multimodal embeddings in one sentence.",
+    "gold_sources": [
+      "INFS7205_Lecture6_High Dimensional Indexing-v1.pdf",
+      "INFS7205_Lecture8_Multimodal RAG.pdf"
+    ],
+    "keywords": [
+      "embeddings",
+      "multimodal",
+      "sentence"
+    ]
+  },
+  {
+    "id": "p10",
+    "family": "follow_up",
+    "prior_turn": [
+      {
+        "user": "List three monitoring tools from week 8.",
+        "assistant": "Gantt tracking, control charts, and milestone trend charts."
+      }
+    ],
+    "query": "Which tool best highlights schedule slip early?",
+    "gold_sources": [
+      "ENGG4800_Lecture_8_Week_8_S1_2026.pdf"
+    ],
+    "keywords": [
+      "schedule",
+      "slip",
+      "tool"
+    ]
+  }
+]

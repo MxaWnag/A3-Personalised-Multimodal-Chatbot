@@ -1,11 +1,20 @@
+import csv
+import json
 from pathlib import Path
 from statistics import mean
-import csv
+from typing import Any, Dict, List, Optional
 
-from mvp_agent import MVPAgent
+try:
+    from .benchmark_session import benchmark_session
+    from .mvp_agent import MVPAgent
+    from .session_store import SESSION_STORE
+except ImportError:
+    from benchmark_session import benchmark_session
+    from mvp_agent import MVPAgent
+    from session_store import SESSION_STORE
 
 
-BENCHMARK = [
+BENCHMARK_LEGACY: List[Dict[str, Any]] = [
     {"id": "f1", "family": "factual", "query": "What is earned value (EV) in project control?", "gold_sources": ["ENGG4800_Lecture_8_Week_8_S1_2026.pdf"], "keywords": ["earned value", "budgeted cost", "work performed"]},
     {"id": "f2", "family": "factual", "query": "What is the baseline plan used for in project monitoring?", "gold_sources": ["ENGG4800_Lecture_8_Week_8_S1_2026.pdf"], "keywords": ["baseline", "measuring performance", "compare"]},
     {"id": "f3", "family": "factual", "query": "What are control charts used to monitor?", "gold_sources": ["ENGG4800_Lecture_8_Week_8_S1_2026.pdf"], "keywords": ["control chart", "milestone", "monitor"]},
@@ -25,26 +34,86 @@ BENCHMARK = [
 ]
 
 
-def recall_at_k(retrieved_ids, gold_ids):
+def load_benchmark(root: Path) -> List[Dict[str, Any]]:
+    path = root / "data" / "benchmark_course_assistant.json"
+    if path.exists():
+        return json.loads(path.read_text(encoding="utf-8"))
+    return list(BENCHMARK_LEGACY)
+
+
+def _metadata_by_id(retrieved_items: Optional[List[Dict[str, Any]]]) -> Dict[str, Dict[str, Any]]:
+    out: Dict[str, Dict[str, Any]] = {}
+    for it in retrieved_items or []:
+        rid = it.get("id")
+        if rid:
+            out[str(rid)] = dict(it.get("metadata") or {})
+    return out
+
+
+def _canonical_doc_ids(rid: str, metadata: Dict[str, Any], agent: MVPAgent) -> set:
+    ids = {str(rid)}
+    for key in ("base_id", "related_text_id"):
+        val = metadata.get(key)
+        if val:
+            ids.add(str(val))
+    srid = str(rid)
+    if "::" in srid:
+        ids.add(srid.split("::", 1)[0])
+    for cid in list(ids):
+        doc = agent.doc_map.get(cid, {})
+        if doc.get("id"):
+            ids.add(str(doc["id"]))
+        sf = doc.get("source_file")
+        if sf:
+            ids.add(str(sf))
+    return ids
+
+
+def recall_at_k(
+    retrieved_ids: List[str],
+    gold_ids: List[str],
+    agent: Optional[MVPAgent] = None,
+    retrieved_items: Optional[List[Dict[str, Any]]] = None,
+) -> float:
     if not gold_ids:
         return 0.0
-    hit = len(set(retrieved_ids).intersection(set(gold_ids)))
-    return hit / len(set(gold_ids))
+    gold = set(gold_ids)
+    top = retrieved_ids[:5]
+    if agent is None:
+        return len(set(top).intersection(gold)) / max(1, len(gold))
+    meta_by_id = _metadata_by_id(retrieved_items)
+    hits = 0
+    for gid in gold:
+        for rid in top:
+            canon = _canonical_doc_ids(str(rid), meta_by_id.get(str(rid), {}), agent)
+            if gid in canon:
+                hits += 1
+                break
+    return hits / max(1, len(gold))
 
 
-def recall_at_k_source(retrieved_ids, gold_sources, agent):
+def recall_at_k_source(
+    retrieved_ids: List[str],
+    gold_sources: List[str],
+    agent: MVPAgent,
+    retrieved_items: Optional[List[Dict[str, Any]]] = None,
+) -> float:
     if not gold_sources:
         return 0.0
-    got = set()
+    want = set(gold_sources)
+    got: set = set()
+    meta_by_id = _metadata_by_id(retrieved_items)
     for rid in retrieved_ids:
         doc = agent.doc_map.get(rid, {})
         src = doc.get("source_file")
-        if src in gold_sources:
-            got.add(src)
-    return len(got) / len(set(gold_sources))
+        meta = meta_by_id.get(str(rid), {})
+        src = src or meta.get("source_file") or meta.get("source") or meta.get("source_pdf")
+        if src in want:
+            got.add(str(src))
+    return len(got) / max(1, len(want))
 
 
-def task_success(answer: str, keywords):
+def task_success(answer: str, keywords: List[str]) -> float:
     ans = answer.lower()
     if not keywords:
         return 0.0
@@ -52,56 +121,97 @@ def task_success(answer: str, keywords):
     return hit / len(keywords)
 
 
-def evidence_consistency(answer: str, retrieved_ids):
-    """
-    Score whether answer references retrieved evidence IDs.
-    This discourages ungrounded fluent responses.
-    """
+def evidence_consistency(answer: str, retrieved_ids: List[str]) -> float:
     if not retrieved_ids:
         return 0.0
     ans = answer.lower()
-    cited = sum(1 for rid in retrieved_ids[:3] if f"[{rid.lower()}]" in ans)
+    cited = sum(1 for rid in retrieved_ids[:3] if f"[{str(rid).lower()}]" in ans)
     return cited / min(3, len(retrieved_ids))
 
 
-def reciprocal_rank(retrieved_ids, gold_doc_ids):
+def reciprocal_rank(
+    retrieved_ids: List[str],
+    gold_doc_ids: List[str],
+    agent: Optional[MVPAgent] = None,
+    retrieved_items: Optional[List[Dict[str, Any]]] = None,
+) -> float:
     if not gold_doc_ids:
         return 0.0
     gold = set(gold_doc_ids)
+    if agent is None:
+        for i, rid in enumerate(retrieved_ids, start=1):
+            if rid in gold:
+                return 1.0 / i
+        return 0.0
+    meta_by_id = _metadata_by_id(retrieved_items)
     for i, rid in enumerate(retrieved_ids, start=1):
-        if rid in gold:
+        canon = _canonical_doc_ids(str(rid), meta_by_id.get(str(rid), {}), agent)
+        if gold.intersection(canon):
             return 1.0 / i
     return 0.0
 
 
-def token_usage_proxy(text: str):
-    # Lightweight token proxy for local benchmarking.
+def reciprocal_rank_source(retrieved_ids: List[str], gold_sources: List[str], agent: MVPAgent) -> float:
+    if not gold_sources:
+        return 0.0
+    gold = set(gold_sources)
+    for i, rid in enumerate(retrieved_ids, start=1):
+        doc = agent.doc_map.get(rid, {})
+        src = doc.get("source_file")
+        if src in gold:
+            return 1.0 / i
+    return 0.0
+
+
+def token_usage_proxy(text: str) -> int:
     return len(text.split())
 
 
-def evaluate_variant(agent: MVPAgent, variant: str):
+def _replay_prior_turns(item: Dict[str, Any], session_id: str) -> None:
+    SESSION_STORE.clear_session(session_id)
+    prior = item.get("prior_turn") or []
+    if isinstance(prior, list):
+        for t in prior:
+            SESSION_STORE.append_turn(session_id, str(t.get("user", "")), str(t.get("assistant", "")))
+
+
+def evaluate_variant(agent: MVPAgent, variant: str, benchmark: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     rows = []
-    for item in BENCHMARK:
-        out = agent.ask(item["query"], variant=variant)
-        if variant == "v0":
+    vf = (variant or "v2").lower()
+    for item in benchmark:
+        sid = f"eval::{item.get('id', 'x')}"
+        msg = str(item.get("query", ""))
+        if vf == "v0":
+            pre = benchmark_session(item)
+            if pre:
+                msg = f"{pre}\n\nCurrent question: {item.get('query', '')}"
+        else:
+            _replay_prior_turns(item, sid)
+        align = vf == "v4"
+        out = agent.ask(msg, variant=vf, session_id=sid, align_recovery=align)
+
+        retrieved_ids = list(out.get("retrieved_ids") or [])
+        retrieved_items = list(out.get("retrieved_items") or [])
+
+        if vf == "v0":
             r5 = 0.0
             rr = 0.0
         elif "gold_docs" in item:
-            r5 = recall_at_k(out["retrieved_ids"][:5], item["gold_docs"])
-            rr = reciprocal_rank(out["retrieved_ids"][:5], item["gold_docs"])
+            r5 = recall_at_k(retrieved_ids, item["gold_docs"], agent, retrieved_items)
+            rr = reciprocal_rank(retrieved_ids, item["gold_docs"], agent, retrieved_items)
         else:
-            r5 = recall_at_k_source(out["retrieved_ids"][:5], item.get("gold_sources", []), agent)
-            rr = 0.0
+            r5 = recall_at_k_source(retrieved_ids, item.get("gold_sources", []) or [], agent, retrieved_items)
+            rr = reciprocal_rank_source(retrieved_ids, item.get("gold_sources", []) or [], agent)
 
-        keyword_score = task_success(out["answer"], item["keywords"])
-        ev_score = evidence_consistency(out["answer"], out["retrieved_ids"])
-        # Strict answer-quality score: semantics + grounding.
+        kw = item.get("keywords") or []
+        keyword_score = task_success(out["answer"], kw if isinstance(kw, list) else [])
+        ev_score = evidence_consistency(out["answer"], retrieved_ids)
         ts = 0.7 * keyword_score + 0.3 * ev_score
 
         rows.append(
             {
-                "id": item["id"],
-                "family": item["family"],
+                "id": item.get("id", ""),
+                "family": item.get("family", ""),
                 "recall5": r5,
                 "mrr": rr,
                 "keyword_score": keyword_score,
@@ -117,10 +227,10 @@ def evaluate_variant(agent: MVPAgent, variant: str):
     return rows
 
 
-def summarize(rows):
-    fam = {}
+def summarize(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
+    fam: Dict[str, List[Dict[str, Any]]] = {}
     for r in rows:
-        fam.setdefault(r["family"], []).append(r)
+        fam.setdefault(str(r["family"]), []).append(r)
     summary = {
         "overall": {
             "Recall@5": mean(r["recall5"] for r in rows),
@@ -152,7 +262,7 @@ def summarize(rows):
     return summary
 
 
-def print_summary(name, summary):
+def print_summary(name: str, summary: Dict[str, Any]) -> None:
     print(f"\n=== {name} ===")
     o = summary["overall"]
     print(
@@ -195,7 +305,7 @@ def print_summary(name, summary):
         )
 
 
-def write_csv(path: Path, rows):
+def write_csv(path: Path, rows: List[Dict[str, Any]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     fields = [
         "id",
@@ -217,9 +327,10 @@ def write_csv(path: Path, rows):
         writer.writerows(rows)
 
 
-def main():
+def main() -> None:
     root = Path(__file__).resolve().parents[1]
     agent = MVPAgent(root / "data")
+    benchmark = load_benchmark(root)
     variants = [
         ("V0_plain_llm", "v0"),
         ("V1_rag_no_memory", "v1"),
@@ -228,8 +339,9 @@ def main():
         ("V4_agent_router_memory_clip", "v4"),
     ]
     print(f"LLM health check | available={agent.llm_available} | model={agent.llm.model}")
+    print(f"Benchmark items: {len(benchmark)}")
     for name, vid in variants:
-        rows = evaluate_variant(agent, vid)
+        rows = evaluate_variant(agent, vid, benchmark)
         summary = summarize(rows)
         print_summary(name, summary)
         write_csv(root / "results" / f"{name}.csv", rows)

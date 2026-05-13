@@ -1,0 +1,41 @@
+Using a slow image processor as `use_fast` is unset and a slow processor was saved with this model. `use_fast=True` will be the default behavior in v4.52, even if the model was saved with a slow processor. This will result in minor differences in outputs. You'll still be able to use a slow processor with `use_fast=False`.
+{
+  "tag": "ablation_v0_v4",
+  "n_items": 40,
+  "llm": false,
+  "csv_suffix": "_v2"
+}
+Wrote results/ablation_v0_v4_V0_plain_llm_v2.csv (40 rows) [V0_plain_llm]
+Wrote results/ablation_v0_v4_V4_hybrid_rag_v2.csv (40 rows) [V4_hybrid_rag]
+By family (all variants combined):
+{
+  "factual": {
+    "Recall@5": 0.45,
+    "MRR": 0.0,
+    "TaskSuccess": 0.43,
+    "LatencyMs": 755.0676461018156,
+    "ToolCalls": 3
+  },
+  "cross_modal": {
+    "Recall@5": 0.45,
+    "MRR": 0.45,
+    "TaskSuccess": 0.4825,
+    "LatencyMs": 18.04359094821848,
+    "ToolCalls": 3
+  },
+  "multi_hop": {
+    "Recall@5": 0.35,
+    "MRR": 0.0,
+    "TaskSuccess": 0.325,
+    "LatencyMs": 15.080897795269266,
+    "ToolCalls": 3
+  },
+  "follow_up": {
+    "Recall@5": 0.275,
+    "MRR": 0.0,
+    "TaskSuccess": 0.255,
+    "LatencyMs": 16.34370208485052,
+    "ToolCalls": 3
+  }
+}
+Wrote report: /home/maxwang/pythonProject/7205/A3-Personalised-Multimodal-Chatbot/results/ablation_v0_v4_report_version2.md
