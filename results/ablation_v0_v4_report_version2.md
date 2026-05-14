@@ -1,11 +1,14 @@
 # System Comparison: V0 (Plain LLM) vs V4 (Hybrid Multimodal Agent) — Version 2
 
-Generated: 2026-05-13 12:51 UTC
+Generated: 2026-05-14 18:01 UTC
 Benchmark: `data/benchmark_course_assistant.json` (40 items; four query families × 10)
 
 ## Version 2 changes vs earlier report
 - **V4 LangGraph** follows the report workflow: `prepare → plan → retrieve (hybrid) → answer → verify`, then **citation rewrite** (`rewrite → verify`) and/or **retrieve recovery** (`retrieve_recovery → answer → verify`) when `align_recovery=true`, with budgets `V4_MAX_REWRITE_ATTEMPTS` / `V4_MAX_RETRIEVE_RECOVERY` (default 2 each).
 - **V0** unchanged: plain LLM, no retrieval.
+
+
+Regenerated from CSVs via ablation_report_v0_v4.py (no full eval). For a paired re-run use evaluate_ablation_v0_v4.py --version2.
 
 ## Hypothesis
 The hybrid multimodal agent (v4) improves grounded answer quality and retrieval on course materials
@@ -27,8 +30,8 @@ versus a plain LLM baseline (v0) with no retrieval.
 |--------|----|----|-------------|
 | Recall@5 | 0.000 | 0.762 | +0.762 |
 | MRR | 0.000 | 0.225 | +0.225 |
-| TaskSuccess | 0.022 | 0.724 | +0.703 |
-| Latency (ms) | 0.1 | 402.2 | +402.1 |
+| TaskSuccess | 0.542 | 0.724 | +0.182 |
+| Latency (ms) | 13408.8 | 183.0 | -13225.8 |
 | ToolCalls | 0.000 | 6.000 | +6.000 |
 
 ## By query family
@@ -39,8 +42,8 @@ versus a plain LLM baseline (v0) with no retrieval.
 |--------|----|----|-------------|
 | Recall@5 | 0.000 | 0.900 | +0.900 |
 | MRR | 0.000 | 0.900 | +0.900 |
-| TaskSuccess | 0.064 | 0.901 | +0.837 |
-| Latency (ms) | 0.1 | 36.0 | +36.0 |
+| TaskSuccess | 0.443 | 0.901 | +0.458 |
+| Latency (ms) | 11002.3 | 38.4 | -10963.9 |
 | ToolCalls | 0.000 | 6.000 | +6.000 |
 
 ### factual
@@ -49,8 +52,8 @@ versus a plain LLM baseline (v0) with no retrieval.
 |--------|----|----|-------------|
 | Recall@5 | 0.000 | 0.900 | +0.900 |
 | MRR | 0.000 | 0.000 | +0.000 |
-| TaskSuccess | 0.000 | 0.860 | +0.860 |
-| Latency (ms) | 0.1 | 1510.0 | +1509.9 |
+| TaskSuccess | 0.560 | 0.860 | +0.300 |
+| Latency (ms) | 13675.5 | 622.3 | -13053.2 |
 | ToolCalls | 0.000 | 6.000 | +6.000 |
 
 ### follow_up
@@ -59,8 +62,8 @@ versus a plain LLM baseline (v0) with no retrieval.
 |--------|----|----|-------------|
 | Recall@5 | 0.000 | 0.550 | +0.550 |
 | MRR | 0.000 | 0.000 | +0.000 |
-| TaskSuccess | 0.023 | 0.487 | +0.463 |
-| Latency (ms) | 0.1 | 32.6 | +32.6 |
+| TaskSuccess | 0.467 | 0.487 | +0.020 |
+| Latency (ms) | 13971.8 | 35.0 | -13936.8 |
 | ToolCalls | 0.000 | 6.000 | +6.000 |
 
 ### multi_hop
@@ -69,8 +72,8 @@ versus a plain LLM baseline (v0) with no retrieval.
 |--------|----|----|-------------|
 | Recall@5 | 0.000 | 0.700 | +0.700 |
 | MRR | 0.000 | 0.000 | +0.000 |
-| TaskSuccess | 0.000 | 0.650 | +0.650 |
-| Latency (ms) | 0.1 | 30.1 | +30.0 |
+| TaskSuccess | 0.700 | 0.650 | -0.050 |
+| Latency (ms) | 14985.5 | 36.2 | -14949.3 |
 | ToolCalls | 0.000 | 6.000 | +6.000 |
 
 ## Interpretation

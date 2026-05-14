@@ -25,7 +25,8 @@ OLLAMA_HOST_URL="${OLLAMA_HOST_URL:-http://127.0.0.1:11435}"
 API_URL="${API_URL:-http://127.0.0.1:8000}"
 CHROMA_WAIT_S="${CHROMA_WAIT_S:-120}"
 OLLAMA_WAIT_S="${OLLAMA_WAIT_S:-120}"
-API_WAIT_S="${API_WAIT_S:-900}"
+# First boot: Chroma indexing + HF embedding downloads can exceed 15m on slow CPU/network.
+API_WAIT_S="${API_WAIT_S:-3600}"
 SLEEP_S="${SLEEP_S:-3}"
 
 log() { echo "[start-docker-stack] $*"; }
@@ -74,7 +75,7 @@ wait_api_ready() {
     sleep "$SLEEP_S"
   done
   echo "error: timeout waiting for API (listening + agent_ready) at $API_URL (${API_WAIT_S}s)." >&2
-  echo "hint: first index + embedding download can be slow; raise API_WAIT_S or check: compose logs -f api" >&2
+  echo "hint: first index + embedding download can be slow; export API_WAIT_S=7200 or check: compose logs -f api" >&2
   return 1
 }
 

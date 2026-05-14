@@ -136,19 +136,8 @@ Use your own course materials as the main data source, and keep a consistent ing
 
 ### Quick Start with Templates
 
-1. Fill the template files in `data/templates/` with your own content.
-2. Copy the completed files into runtime paths:
-   - `data/templates/text_docs.template.jsonl` -> `data/sample/text_docs.jsonl`
-   - `data/templates/image_docs.template.jsonl` -> `data/sample/image_docs.jsonl`
-   - `data/templates/user_profile.template.json` -> `data/user_profile.json`
-3. Run:
-   - `python3 src/evaluate.py`
 
-4. Backend:
-    - `uvicorn src.server:app --reload --port 8000`
 
-5. Frontend:
-    - `python3 -m streamlit run src/streamlit_app.py`
 
 ## Docker Deployment (Chroma + API + Streamlit + Ollama)
 
@@ -189,3 +178,7 @@ docker compose down
 ### how to index
 pip install -r requirements.txt
 python3 src/pipeline/offline_index.py --rebuild
+
+### HOW TO RUN automatically
+./start-docker-stack.sh
+##It will  take a very very long time to download dependencies and do offline index

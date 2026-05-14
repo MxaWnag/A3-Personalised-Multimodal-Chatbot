@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional
 
 try:
     from .agent_graph import compile_langgraph
-    from .agent_policy import DeepSeekComposer, DeepSeekPlanner, DeepSeekVerifier
+    from .agent_policy import LlmComposer, LlmPlanner, LlmVerifier
     from .agent_tools import build_tools
     from .pipeline.offline_index import build_offline_index
     from .pipeline.retrieval import ChromaRetriever
@@ -17,7 +17,7 @@ try:
     from .session_store import SESSION_STORE
 except ImportError:
     from agent_graph import compile_langgraph
-    from agent_policy import DeepSeekComposer, DeepSeekPlanner, DeepSeekVerifier
+    from agent_policy import LlmComposer, LlmPlanner, LlmVerifier
     from agent_tools import build_tools
     from pipeline.offline_index import build_offline_index
     from pipeline.retrieval import ChromaRetriever
@@ -81,9 +81,9 @@ class MVPAgent:
         self.current_filters: Dict[str, Any] = {}
         self.retrieval_note = ""
         self.tools = build_tools(self.retriever)
-        self.planner = DeepSeekPlanner(self._llm_chat)
-        self.composer = DeepSeekComposer(self._llm_chat)
-        self.verifier = DeepSeekVerifier(self._llm_chat)
+        self.planner = LlmPlanner(self._llm_chat)
+        self.composer = LlmComposer(self._llm_chat)
+        self.verifier = LlmVerifier(self._llm_chat)
         self._graph_app = compile_langgraph(self)
 
     def _llm_chat(self, system: str, user: str, timeout_s: Optional[float] = None) -> str:

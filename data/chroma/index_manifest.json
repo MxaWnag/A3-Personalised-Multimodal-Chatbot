@@ -1,0 +1,10 @@
+{
+  "pipeline_version": "pdf3way-manifest-v1",
+  "source_fingerprint": "dbd456a0c2fc5ba7236f706c986132590d70100887bd564ff77f06e26cda7792",
+  "updated_unix": 1778778889,
+  "text_chunks": 693,
+  "image_docs": 588,
+  "pdf_files_indexed": 12,
+  "jsonl_text_chunks": 108,
+  "jsonl_image_docs": 8
+}

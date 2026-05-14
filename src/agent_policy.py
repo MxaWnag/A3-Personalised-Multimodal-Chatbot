@@ -33,7 +33,7 @@ def _try_json(text: str) -> Dict[str, Any] | None:
         return None
 
 
-class DeepSeekPlanner:
+class LlmPlanner:
     def __init__(self, llm_invoke: Callable[[str, str], str]) -> None:
         self._llm = llm_invoke
 
@@ -83,7 +83,7 @@ Return JSON with keys:
         }
 
 
-class DeepSeekComposer:
+class LlmComposer:
     def __init__(self, llm_invoke: Callable[[str, str], str]) -> None:
         self._llm = llm_invoke
 
@@ -178,7 +178,7 @@ Rewrite the answer now with correct citations to the allowed ids only.
         return text
 
 
-class DeepSeekVerifier:
+class LlmVerifier:
     def __init__(self, llm_invoke: Callable[[str, str], str]) -> None:
         self._llm = llm_invoke
 

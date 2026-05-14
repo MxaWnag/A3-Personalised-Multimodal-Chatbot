@@ -15,6 +15,18 @@ services:
       - "11435:11434"
     volumes:
       - ollama_data:/root/.ollama
+    # GPU: use `deploy` (Docker Desktop often rejects top-level `gpus:` on older compose schemas).
+    # Requires: NVIDIA driver + nvidia-container-toolkit. CPU-only: remove `deploy` and NVIDIA_* env.
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
     restart: unless-stopped
 
   api:
@@ -29,9 +41,26 @@ services:
       - OLLAMA_MODEL=llama3.1:8b
       - CHROMA_HOST=chroma
       - CHROMA_PORT=8000
+      # Optional: Ollama /api/generate options — how many LLM layers on GPU (-1 = auto, 99 = push hard). Helps if ollama ps shows 100% CPU.
+      - A3_OLLAMA_NUM_GPU=-1
+      # Fast startup: skip per-page LLaVA during PDF indexing (caption = page text / fallback).
+      # Set to 0 or remove when you need full slide captions for retrieval quality. -- very very long time
+      - A3_SKIP_PDF_LLAVA=1
     depends_on:
       - chroma
       - ollama
+    # Uvicorn does not accept connections until lifespan finishes (index + HF downloads).
+    # Long start_period avoids marking the API unhealthy during a slow first boot.
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python3 -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5).read()\"",
+        ]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 7200s
     restart: unless-stopped
 
   streamlit:
@@ -42,10 +71,11 @@ services:
       - "8501:8501"
     environment:
       - API_BASE_URL=http://api:8000
-      - API_CHAT_TIMEOUT_S=900
+      - API_CHAT_TIMEOUT_S=3600
       - STREAMLIT_HEALTH_TIMEOUT_S=60
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:

@@ -8,7 +8,7 @@ import streamlit as st
 
 API_BASE = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")
 # First /chat may cold-start the agent (index + models) and Ollama can be slow on CPU/GPU.
-CHAT_TIMEOUT_S = float(os.getenv("API_CHAT_TIMEOUT_S", "900"))
+CHAT_TIMEOUT_S = float(os.getenv("API_CHAT_TIMEOUT_S", "3600"))
 HEALTH_TIMEOUT_S = float(os.getenv("STREAMLIT_HEALTH_TIMEOUT_S", "30"))
 
 

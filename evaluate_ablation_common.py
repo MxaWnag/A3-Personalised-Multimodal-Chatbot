@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import csv
 import json
-from datetime import datetime, timezone
 from pathlib import Path
 from statistics import mean
 from typing import Any, Dict, List, Tuple
@@ -11,6 +10,8 @@ import sys
 
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT / "src"))
+
+from ablation_report_v0_v4 import render_v0_v4_markdown_report  # noqa: E402
 
 from benchmark_session import benchmark_session  # noqa: E402
 from evaluate import (  # noqa: E402
@@ -114,134 +115,6 @@ def _mean(rows: List[Dict[str, Any]], key: str) -> float:
     if not rows:
         return 0.0
     return mean(float(r[key]) for r in rows)
-
-
-def render_v0_v4_markdown_report(
-    v0_csv: Path,
-    v4_csv: Path,
-    out_md: Path,
-    *,
-    workflow_note: str = "",
-) -> None:
-    """Build V0 vs V4 comparison tables from two per-variant CSVs."""
-
-    def load_rows(p: Path) -> List[Dict[str, str]]:
-        with p.open(newline="", encoding="utf-8") as f:
-            return list(csv.DictReader(f))
-
-    v0_rows = load_rows(v0_csv)
-    v4_rows = load_rows(v4_csv)
-    fams = sorted({str(r.get("family", "")) for r in v0_rows + v4_rows if r.get("family")})
-
-    def pack(rows: List[Dict[str, str]]) -> Dict[str, float]:
-        return {
-            "Recall@5": _mean(rows, "recall5"),
-            "MRR": _mean(rows, "mrr"),
-            "TaskSuccess": _mean(rows, "success"),
-            "LatencyMs": _mean(rows, "latency_ms"),
-            "ToolCalls": _mean(rows, "tool_calls"),
-        }
-
-    o0 = pack(v0_rows)
-    o4 = pack(v4_rows)
-
-    llm_v4_rate = _mean(v4_rows, "llm_used")
-    llm_note = ""
-    if llm_v4_rate < 0.5:
-        llm_note = (
-            "\n- **Note (this run)**: V4 rows show low `llm_used` (Ollama/model likely unavailable); "
-            "planner/verifier/composer used JSON/text fallbacks. Re-run with a live LLM for report-grade answer quality.\n"
-        )
-
-    def row_line(metric: str, k: str) -> str:
-        a, b = o0[k], o4[k]
-        d = b - a
-        if k == "LatencyMs":
-            return f"| {metric} | {a:.1f} | {b:.1f} | {d:+.1f} |"
-        return f"| {metric} | {a:.3f} | {b:.3f} | {d:+.3f} |"
-
-    ts = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-    lines: List[str] = [
-        "# System Comparison: V0 (Plain LLM) vs V4 (Hybrid Multimodal Agent) — Version 2",
-        "",
-        f"Generated: {ts}",
-        "Benchmark: `data/benchmark_course_assistant.json` (40 items; four query families × 10)",
-        "",
-        "## Version 2 changes vs earlier report",
-        "- **V4 LangGraph** follows the report workflow: `prepare → plan → retrieve (hybrid) → answer → verify`, then **citation rewrite** (`rewrite → verify`) and/or **retrieve recovery** (`retrieve_recovery → answer → verify`) when `align_recovery=true`, with budgets `V4_MAX_REWRITE_ATTEMPTS` / `V4_MAX_RETRIEVE_RECOVERY` (default 2 each).",
-        "- **V0** unchanged: plain LLM, no retrieval.",
-        "",
-    ]
-    if workflow_note:
-        lines.extend(["", workflow_note.strip(), ""])
-    lines.extend(
-        [
-            "## Hypothesis",
-            "The hybrid multimodal agent (v4) improves grounded answer quality and retrieval on course materials",
-            "versus a plain LLM baseline (v0) with no retrieval.",
-            "",
-            "## Setup",
-            "- **V0**: plain LLM only (`plain_llm`); no Chroma retrieval.",
-            "- **V4**: hybrid multimodal RAG + verifier + optional **rewrite** / **retrieve_recovery** loops (`align_recovery=true` during this ablation).",
-            "- **Metrics**: Recall@5 and MRR (retrieval; v0 is always 0); TaskSuccess = 0.7×keyword + 0.3×evidence;",
-            "  **Latency** (milliseconds) and **ToolCalls** (efficiency). Retrieval scores use Chroma ids and metadata.",
-            f"- **Artifacts**: `{v0_csv.name}`, `{v4_csv.name}`.",
-            llm_note,
-            "",
-            "## Overall",
-            "",
-            "| Metric | V0 | V4 | Δ (V4−V0) |",
-            "|--------|----|----|-------------|",
-            row_line("Recall@5", "Recall@5"),
-            row_line("MRR", "MRR"),
-            row_line("TaskSuccess", "TaskSuccess"),
-            row_line("Latency (ms)", "LatencyMs"),
-            row_line("ToolCalls", "ToolCalls"),
-            "",
-            "## By query family",
-            "",
-        ]
-    )
-
-    for fam in fams:
-        r0 = [r for r in v0_rows if str(r.get("family", "")) == fam]
-        r4 = [r for r in v4_rows if str(r.get("family", "")) == fam]
-        p0, p4 = pack(r0), pack(r4)
-        lines.append(f"### {fam}")
-        lines.append("")
-        lines.append("| Metric | V0 | V4 | Δ (V4−V0) |")
-        lines.append("|--------|----|----|-------------|")
-        for label, k in [
-            ("Recall@5", "Recall@5"),
-            ("MRR", "MRR"),
-            ("TaskSuccess", "TaskSuccess"),
-            ("Latency (ms)", "LatencyMs"),
-            ("ToolCalls", "ToolCalls"),
-        ]:
-            a, b = p0[k], p4[k]
-            d = b - a
-            if k == "LatencyMs":
-                lines.append(f"| {label} | {a:.1f} | {b:.1f} | {d:+.1f} |")
-            else:
-                lines.append(f"| {label} | {a:.3f} | {b:.3f} | {d:+.3f} |")
-        lines.append("")
-
-    lines.extend(
-        [
-            "## Interpretation",
-            "- **V0 retrieval metrics** are zero by design; compare TaskSuccess, latency, and tool cost for the system-level baseline.",
-            "- **V4** may show higher ToolCalls when verify/rewrite/retrieve_recovery loops run.",
-            "- **Follow-up**: `prior_turn` replayed into `SESSION_STORE` before the follow-up query.",
-            "",
-            "## Artifacts",
-            f"- `results/{v0_csv.name}`",
-            f"- `results/{v4_csv.name}`",
-            "",
-        ]
-    )
-    out_md.parent.mkdir(parents=True, exist_ok=True)
-    out_md.write_text("\n".join(lines), encoding="utf-8")
-    print(f"Wrote report: {out_md}")
 
 
 def summarize_family(rows: List[Dict[str, Any]]) -> Dict[str, Dict[str, float]]:
